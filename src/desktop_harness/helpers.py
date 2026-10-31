@@ -254,7 +254,7 @@ def click_text(
     from . import safety as _safety
     _safety.check_frontmost_allowed()
     if app:
-        _safety.check_app_allowed(str(app))
+        _safety.check_app_allowed(app)
     _safety.audit("click_text", {"text": text, "app": app, "exact": exact})
     hits = _ax.find(text, app=app, role=role, max_results=12)
     if exact:
@@ -300,6 +300,15 @@ def click_text(
 
 def set_field(text: str, value: str, app: str | int | None = None) -> dict[str, Any]:
     """Find a text field by nearby label/title and set its value."""
+    from . import safety as _safety
+    _safety.check_frontmost_allowed()
+    if app is not None:
+        _safety.check_app_allowed(app)
+    _safety.audit("set_field", {
+        "app": app,
+        "text_length": len(text),
+        "value_length": len(value),
+    })
     hits = _ax.find(text, app=app, max_results=10)
     # prefer text fields
     ordered = sorted(
@@ -378,7 +387,7 @@ def verify(note: str = "", app: str | int | None = None) -> dict[str, Any]:
     except Exception as e:
         result["labels_error"] = str(e)
     try:
-        result["screenshot"] = screenshot(app=app if isinstance(app, str) else None)
+        result["screenshot"] = screenshot(app=app)
     except Exception as e:
         result["screenshot_error"] = str(e)
     try:

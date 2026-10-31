@@ -53,14 +53,39 @@ def _looks_sensitive(name: str = "", bundle_id: str = "") -> bool:
     return False
 
 
-def check_app_allowed(name: str, bundle_id: str = "") -> None:
+def check_app_allowed(name: str | int, bundle_id: str = "") -> None:
     if allow_sensitive():
         return
-    if _looks_sensitive(name, bundle_id):
+
+    name_text = "" if name is None else str(name)
+    if _looks_sensitive(name_text, bundle_id):
         raise PermissionError(
-            f"refusing to control sensitive app {name!r} ({bundle_id or 'no bundle'}). "
+            f"refusing to control sensitive app {name_text!r} "
+            f"({bundle_id or 'no bundle'}). "
             f"Set DH_ALLOW_SENSITIVE=1 if you really mean it."
         )
+    if bundle_id:
+        return
+
+    # The supplied name may be an alias or partial title. Resolve it before
+    # allowing access so an alias cannot bypass the sensitive-app gate.
+    try:
+        from . import windows as winmod
+        resolved = winmod.find_app(name if isinstance(name, int) else name_text)
+    except Exception as exc:
+        raise PermissionError(
+            "refusing to control an app: application lookup failed"
+        ) from exc
+
+    if resolved:
+        actual_name = str(resolved.get("name") or name_text)
+        actual_bundle = str(resolved.get("bundle_id") or "")
+        if _looks_sensitive(actual_name, actual_bundle):
+            raise PermissionError(
+                f"refusing to control sensitive app {actual_name!r} "
+                f"({actual_bundle or 'no bundle'}). "
+                f"Set DH_ALLOW_SENSITIVE=1 if you really mean it."
+            )
 
 
 def check_frontmost_allowed() -> None:
@@ -70,11 +95,32 @@ def check_frontmost_allowed() -> None:
     try:
         from . import windows as winmod
         front = winmod.frontmost_app()
-    except Exception:
-        return
+    except Exception as exc:
+        raise PermissionError(
+            "refusing mutation: unable to verify the frontmost application"
+        ) from exc
     if not front:
-        return
-    check_app_allowed(front.get("name") or "", front.get("bundle_id") or "")
+        raise PermissionError(
+            "refusing mutation: no frontmost application could be identified"
+        )
+
+    name = str(front.get("name") or "")
+    bundle_id = str(front.get("bundle_id") or "")
+    pid = front.get("pid")
+    if not name and not bundle_id and pid:
+        try:
+            resolved = winmod.find_app(int(pid))
+        except Exception:
+            resolved = None
+        if resolved:
+            name = str(resolved.get("name") or "")
+            bundle_id = str(resolved.get("bundle_id") or "")
+
+    if not name and not bundle_id:
+        raise PermissionError(
+            "refusing mutation: frontmost application identity is unknown"
+        )
+    check_app_allowed(name, bundle_id)
 
 
 def check_helper_allowed(name: str) -> None:
