@@ -125,7 +125,7 @@ while True:
 
 ## DAEMON-5（P2）`daemon start` 單例檢查為 TOCTOU，並發 start 可產生雙實例
 
-**位置：** `daemon.serve()` 開頭：讀 PID 檔 → 探測 → `unlink` 舊 socket → `bind`。兩個並發 `daemon start` 都可能通過檢查，各自 bind（後 bind 者拿到路徑、先 bind 者的 socket 被 unlink 後成為孤兹），行為未定義。
+**位置：** `daemon.serve()` 開頭：讀 PID 檔 → 探測 → `unlink` 舊 socket → `bind`。兩個並發 `daemon start` 都可能通過檢查，各自 bind（後 bind 者拿到路徑、先 bind 者的 socket 被 unlink 後成為孤兒 socket），行為未定義。
 
 **影響：** 低機率（人為手動雙擊啟動、script 競態），但一旦發生：兩個 daemon 各持有不同 token（`_write_token` 覆寫），client 讀到的 token 只對其中一個有效，症狀是間歇性 `unauthorized` —— 難以診斷。
 

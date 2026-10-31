@@ -30,7 +30,7 @@
 
 **位置：** `safety.audit()` — 目前呼叫點（依可見程式碼）：`activate`／`activate_skip`（windows.py）、`screenshot`（capture.py）。`type_text`／`click_text`／`set_field`／`hotkey` 等其他 mutation 未見呼叫（`helpers.py`／`input.py` 未審，待確認；PRE-RELEASE-REVIEW #1 已指出同樣缺口）。
 
-**影響：** 稽核軌跡有洞 —— 事后無法回答「agent 昨天到底點了/打了什麼」。輪替與靜默失敗問題已在 TR-4 處理，此處聚焦**覆蓋與內容政策**。
+**影響：** 稽核軌跡有洞 —— 事後無法回答「agent 昨天到底點了/打了什麼」。輪替與靜默失敗問題已在 TR-4 處理，此處聚焦**覆蓋與內容政策**。
 
 **建議修法：**
 1. 覆蓋：所有 mutation helper 統一在單一 gate 函式內 audit（與 sensitive-app gate 同一個 choke point，一次補齊兩件事）。`click_text` 記目標 label；`type_text` **只記長度不記內容**（內容可能含密碼/個資 —— 現行「set_field 不記值」的直覺是對的，成文化為政策）。

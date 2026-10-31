@@ -63,7 +63,7 @@
 2. `screenshot()` 增加可選 `pid` 參數，並把匹配邏輯集中為一個可單測的純函式（輸入 window dict list + 查詢 → 輸出 window），用 fake 資料測排序優先級。
 3. `list_windows()` 同樣可加 100ms 級 TTL 快取（與 PERC-1 共用模式）。
 
-**驗證方式：** 純函式單測（fake window list：多個同 app 不同 pid 的視窗、名稱子字響應）斷言匹配優先級：pid > exact name > title 子字串。實機驗證：開兩個同 app 視窗，指定 pid 截圖後比對兩張 PNG 差異。截圖寫到 `tmp_path`。
+**驗證方式：** 純函式單測（fake window list：多個同 app 不同 pid 的視窗、名稱子字串）斷言匹配優先級：pid > exact name > title 子字串。實機驗證：開兩個同 app 視窗，指定 pid 截圖後比對兩張 PNG 差異。截圖寫到 `tmp_path`。
 
 **優先級：** P1
 
@@ -76,9 +76,9 @@
 **影響：**
 - 每張全螢幕 PNG 數 MB；`verify()` 每次動作後一張、observe loop 24 張/輪、daemon 長跑數天的 agent session —— 洩漏量級可到 GB。
 - 唯一被清理的時機是手動刪或系統重開機清 `/tmp`（macOS 定期清理行為不保證、不即時）。
-- 檔名唯一化（per-call unique）是先前修對的（PRE-RELEASE-REVIEW #17），但只解決了 clobber，沒解紹累積。
+- 檔名唯一化（per-call unique）是先前修對的（PRE-RELEASE-REVIEW #17），但只解決了 clobber，沒解決累積。
 
-**建議修法：** 在 `screenshot()` 寫檔前做一次輕量清理（节流：每 N 次呼叫或每 60s 一次，避免每次都掃目錄）：
+**建議修法：** 在 `screenshot()` 寫檔前做一次輕量清理（節流：每 N 次呼叫或每 60s 一次，避免每次都掃目錄）：
 ```python
 def _sweep_old_captures(max_files: int = 200, max_age_days: float = 2.0) -> None:
     try:

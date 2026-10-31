@@ -1,4 +1,4 @@
-# Findings — 逾時、重試與錯誯恢復（`voice_session.py`、`safety.py`、`selftest.py`、`demo.py`）
+# Findings — 逾時、重試與錯誤恢復（`voice_session.py`、`safety.py`、`selftest.py`、`demo.py`）
 
 ---
 
