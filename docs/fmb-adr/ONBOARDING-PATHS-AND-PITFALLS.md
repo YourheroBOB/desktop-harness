@@ -15,14 +15,14 @@
 | `src/desktop_harness/helpers.py` | 公開 API 表層，組出腳本命名空間（併入 `agent_helpers.py`） | 任務特定包裝放 agent_helpers，別膨脹核心（ADR-0014） |
 | `src/desktop_harness/windows.py` | `list_apps`／`list_windows`／`frontmost_app`／`find_app`／`activate` | 找 app 是精確→前綴→最短子字串→bundle id 的排序學 |
 | `src/desktop_harness/ax.py` | AX 樹走訪、`ax_snapshot`／`find`／`labels`、`AXPress`、`frame_on_screen` | 這是主要「眼睛」；樹要精簡，別整棵倒出（ADR-0001） |
-| `src/desktop_harness/capture.py` | 視窗／螢幕 PNG（回落路徑） | 截圖前跑敏感 app 檢查；暫存檔清理是已知缺口（PERC-3） |
+| `src/desktop_harness/capture.py` | 視窗／螢幕 PNG（回落路徑） | 截圖前跑敏感 app 檢查；暫存檔清理是已知缺口（PERC-3，見 `docs/fmb-perf/findings-perf.md`） |
 | `src/desktop_harness/input.py` | CGEvent／CGWarp 真實滑鼠鍵盤 | 座標點擊要目標在前景；presence 光環要同步 |
 | `src/desktop_harness/safety.py` | 敏感 app 閘門、前景檢查、audit log | 截圖敏感前景同於點擊（ADR-0008）；audit 不記內容（ADR-0012） |
-| `src/desktop_harness/daemon.py` | NDJSON over Unix socket、0600、token、PID 單例 | 是「本機特權 exec 端點」；單執行緒 accept 迴圈有已知限制（DAEMON-1/2） |
+| `src/desktop_harness/daemon.py` | NDJSON over Unix socket、0600、token、PID 單例 | 是「本機特權 exec 端點」；單執行緒 accept 迴圈有已知限制（DAEMON-1/2，見 `docs/fmb-perf/findings-daemon.md`） |
 | `src/desktop_harness/presence.py` | 游標光環＋「hands off」橫幅、`keep_alive()` | AppKit 只能主執行緒（ADR-0006）；背景執行緒會 SIGABRT |
 | `src/desktop_harness/admin.py` | `--doctor` 權限健檢 | 授權後 Screen Recording 要重啟 host app 才生效 |
-| `src/desktop_harness/selftest.py` | 非破壞自測 | daemon 往返會停掉使用者已在跑的 daemon（TR-6），跑之前先 `daemon status` |
-| `src/desktop_harness/demo.py` | 可見煙霧測試 | 找不到目標視窗必須 abort，不可把按鍵打進未知 app（DEMO-1） |
+| `src/desktop_harness/selftest.py` | 非破壞自測 | daemon 往返會停掉使用者已在跑的 daemon（TR-6，見 `docs/fmb-perf/` 測試紀錄），跑之前先 `daemon status` |
+| `src/desktop_harness/demo.py` | 可見煙霧測試 | 找不到目標視窗必須 abort，不可把按鍵打進未知 app（DEMO-1，見 `docs/fmb-review/`） |
 | `voice_tools.py` + `scripts/voice_session.py` | 實驗性語音控制 | optional、需自備 key、不進核心依賴（ADR-0011） |
 
 ---
@@ -63,14 +63,14 @@ namespace() = helpers + agent_helpers
 |------|----------|------------|------|
 | 新增 agent 可呼叫的通用 helper | `helpers.py`（含命名空間匯出） | 過安全閘門、audit 只記中繼資料、更新 `docs/fmb-api/` 與 `SKILL.md`（根目錄與 `src/desktop_harness/data/` 兩份） | ADR-0003、ADR-0012 |
 | 新增任務特定包裝 | `agent-workspace/agent_helpers.py` | 不動核心；注意它等於可信程式碼 | ADR-0014 |
-| 改 `find`／`labels`／快照行為 | `ax.py` | 維持 compact tree 契約；輪詢條件等待優於固定 sleep | ADR-0001、ROADMAP 第 1/3 項 |
+| 改 `find`／`labels`／快照行為 | `ax.py` | 維持 compact tree 契約；輪詢條件等待優於固定 sleep | ADR-0001、`docs/fmb/ROADMAP.md` 第 1/3 項 |
 | 改滑鼠／鍵盤手感 | `input.py` | presence 光環同步、`DH_MOUSE_INSTANT` 語意不變 | ADR-0005 |
-| 改安全政策／敏感名單 | `safety.py` | 同步 `SECURITY.md` 與 ADR-0008；名稱子字串過寬是已知問題 | ADR-0008、ROADMAP 第 6/9 項 |
+| 改安全政策／敏感名單 | `safety.py` | 同步 `SECURITY.md` 與 ADR-0008；名稱子字串過寬是已知問題 | ADR-0008、`docs/fmb/ROADMAP.md` 第 6/9 項 |
 | 改 daemon | `daemon.py` | 維持 NDJSON 相容、0600、單實例；先讀 `docs/fmb-perf/findings-daemon.md` | ADR-0004 |
 | 改 presence | `presence.py` | 只走主執行緒；observe loop 密集截圖，含焦點轉移與空轉 | ADR-0006、`docs/OBSERVE-LOOP.md` |
 | 新增 CLI 子命令 | `run.py` | 更新 `docs/fmb-api/cli.md` | ADR-0002 |
-| 加依賴／改打包 | `pyproject.toml`、`install.sh`、`desktop-harness` launcher | 版本下限、不把 voice 依賴進核心、`SKILL.md` 雙份真相 | ADR-0011、PKG-1..5 |
-| 動語音實驗 | `scripts/voice_session.py`、`voice_tools.py` | 維持 optional；`--dry-run` 不得碰真實 GUI；不寫 key | ADR-0011、VS-1/VS-2 |
+| 加依賴／改打包 | `pyproject.toml`、`install.sh`、`desktop-harness` launcher | 版本下限、不把 voice 依賴進核心、`SKILL.md` 雙份真相 | ADR-0011、PKG-1..5（見 `docs/fmb-review/`） |
+| 動語音實驗 | `scripts/voice_session.py`、`voice_tools.py` | 維持 optional；`--dry-run` 不得碰真實 GUI；不寫 key | ADR-0011、VS-1/VS-2（見 `docs/fmb-review/`） |
 | 寫文件 | `docs/fmb*/`、根目錄 md | 繁體中文、不連線、不寫任何密鑰或個資 | ADR-0015 |
 
 ---
@@ -80,15 +80,15 @@ namespace() = helpers + agent_helpers
 1. **AppKit 只能主執行緒**：背景執行緒碰 window 方法會直接 SIGABRT（無 Python 例外、救不回來）。等待要用 `keep_alive()` 分片 pump，不要開 thread。（ADR-0006）
 2. **AX 成功 ≠ 畫面成功**：動作沒拋錯只代表呼叫成功。改畫面的路徑結尾一定 `verify()` 並讀回傳的截圖。（ADR-0009）
 3. **媒體只 look-once／act-once**：先讀 `media_transport()`，已在播放就停手；絕不連按 Space（會 toggle 暫停），絕不寬比對 `"Play"`。（ADR-0007、`docs/POSTMORTEM-media-play.md`）
-4. **固定 sleep 會 race**：慢機來不及渲染、快機白等。改為有逾時的條件輪詢。（TR-5、DEMO-4、ROADMAP 第 1 項）
+4. **固定 sleep 會 race**：慢機來不及渲染、快機白等。改為有逾時的條件輪詢。（TR-5、DEMO-4，見 `docs/fmb-perf/` 與 `docs/fmb-review/`；`docs/fmb/ROADMAP.md` 第 1 項）
 5. **截圖敏感前景 = 洩漏**：前景是密碼管理器類 app 時，截圖與點擊同級阻擋；新增 capture 路徑不可繞過 `check_frontmost_allowed()`。（ADR-0008）
 6. **audit 不記內容**：新 helper 的審計只記動作與長度，不記打字、剪貼簿、訊息內文。（ADR-0012）
-7. **daemon 是特權端點**：socket／token 0600、PID 單例、stale socket 要清；單執行緒 accept 迴圈與未捕捉例外的 P0 問題在動手前先讀 findings。（ADR-0004、DAEMON-1..7）
+7. **daemon 是特權端點**：socket／token 0600、PID 單例、stale socket 要清；單執行緒 accept 迴圈與未捕捉例外的 P0 問題在動手前先讀 findings。（ADR-0004；DAEMON-1..7，見 `docs/fmb-perf/findings-daemon.md`）
 8. **任意 exec 的爆炸半徑**：腳本可 `import subprocess` 繞過 `DH_*` 閘門——這是有意的彈性，文件不可宣稱 runtime 能擋危險意圖。（ADR-0003、ADR-0010）
 9. **測試紀律**：不連線正式服務（voice 用 mock／`--dry-run`）；不讀寫 repo 外路徑（用 `tmp_path`／tempfile 與 `DH_SOCKET`／`DH_TOKEN_PATH`／`DH_AUDIT_LOG`）；不停使用者正在跑的 daemon；假憑證一律 `FAKE_VALUE_FOR_TEST`。
 10. **presence 的驗證方式**：一張靜態截圖證明不了什麼。必須 demo 到「點擊切到別的 app 後空轉數秒」，並用多幀確認光環／橫幅還在——這個 bug 真的 shipped 過一次。（`docs/OBSERVE-LOOP.md`、`SKILL.md`）
-11. **文件漂移**：README／install／RELEASE 的 clone URL 指向 `xfreeze2`，與本 repo `YourheroBOB` 不一致（DOC-1，待 BOB 定 canonical upstream）；文件間以 review 編號互引容易斷（DOC-2）——引用檔案／章節，別引用編號。
-12. **SKILL.md 兩份真相**：根目錄與 `src/desktop_harness/data/SKILL.md`（wheel force-include）需一致；改技能內容記得兩處或依 PKG-4 的決策收斂。
+11. **文件漂移**：README／install／RELEASE 的 clone URL 指向 `xfreeze2`，與本 repo `YourheroBOB` 不一致（DOC-1，見 `docs/fmb-review/`，待 BOB 定 canonical upstream）；文件間若只寫 review 編號容易斷（DOC-2，見 `docs/fmb-review/`）——引用一律連同出處檔案，例如「PERC-3，見 `docs/fmb-perf/findings-perf.md`」，別只寫編號（本文各處括號寫法即為範例）。
+12. **SKILL.md 兩份真相**：根目錄與 `src/desktop_harness/data/SKILL.md`（wheel force-include）需一致；改技能內容記得兩處或依 PKG-4 的決策收斂（PKG-4，見 `docs/fmb-review/`）。
 13. **審查文件只提案不改碼**：`docs/fmb-perf/`、`docs/fmb-review/` 是報告，修法都要另開分支實作——讀的時候不要以為已經修了。
 
 ---
