@@ -11,7 +11,7 @@ desktop-harness 有能力代表使用者發訊息、購買、刪除、修改安�
 文件一貫要求這類動作必須先取得人類同意：
 
 - `SKILL.md`：「Real Mac. **STOP and ask** before: messages, posts, purchases, deletes, security settings, passwords.」
-- `SECURITY.md》：「Agents should refuse outbound actions (messages, purchases, deletes) without human confirmation」
+- `SECURITY.md`：「Agents should refuse outbound actions (messages, purchases, deletes) without human confirmation」
 - `README.md`：「**Agents must ask** before send/post/pay/delete/security changes」
 
 與此同時，runtime 能可靠判斷的只有「目標是不是敏感 app」「前景是不是敏感 app」（ADR-0008）以及把動作寫進審計日誌。`docs/fmb/ROADMAP.md` 亦指出：`safety.check_helper_allowed()` 曾是未接線的死 API，`_HIGH_RISK_HELPERS` 清單內的名稱並非真實 helper——在程式碼層列舉「高風險函式」既維護不動，也容易給人錯誤的安全感。

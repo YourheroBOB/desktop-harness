@@ -83,7 +83,7 @@ namespace() = helpers + agent_helpers
 4. **固定 sleep 會 race**：慢機來不及渲染、快機白等。改為有逾時的條件輪詢。（TR-5、DEMO-4、ROADMAP 第 1 項）
 5. **截圖敏感前景 = 洩漏**：前景是密碼管理器類 app 時，截圖與點擊同級阻擋；新增 capture 路徑不可繞過 `check_frontmost_allowed()`。（ADR-0008）
 6. **audit 不記內容**：新 helper 的審計只記動作與長度，不記打字、剪貼簿、訊息內文。（ADR-0012）
-7. **daemon 是特權端點**：socket／token 0600、PID 單例、stale socket 要清；單執行緒 accept 迴圈與未捕捉例定的 P0 問題在動手前先讀 findings。（ADR-0004、DAEMON-1..7）
+7. **daemon 是特權端點**：socket／token 0600、PID 單例、stale socket 要清；單執行緒 accept 迴圈與未捕捉例外的 P0 問題在動手前先讀 findings。（ADR-0004、DAEMON-1..7）
 8. **任意 exec 的爆炸半徑**：腳本可 `import subprocess` 繞過 `DH_*` 閘門——這是有意的彈性，文件不可宣稱 runtime 能擋危險意圖。（ADR-0003、ADR-0010）
 9. **測試紀律**：不連線正式服務（voice 用 mock／`--dry-run`）；不讀寫 repo 外路徑（用 `tmp_path`／tempfile 與 `DH_SOCKET`／`DH_TOKEN_PATH`／`DH_AUDIT_LOG`）；不停使用者正在跑的 daemon；假憑證一律 `FAKE_VALUE_FOR_TEST`。
 10. **presence 的驗證方式**：一張靜態截圖證明不了什麼。必須 demo 到「點擊切到別的 app 後空轉數秒」，並用多幀確認光環／橫幅還在——這個 bug 真的 shipped 過一次。（`docs/OBSERVE-LOOP.md`、`SKILL.md`）
