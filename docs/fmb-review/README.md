@@ -89,62 +89,62 @@ grep -n "typing anyway" src/desktop_harness/demo.py
 | INS-6 | P2 | 冪等性 | 重跑安裝沿用可能損壞的 `.venv` | 同上 |
 | INS-7 | P2 | 相依風險 | pip 安裝未鎖版本下限 | 同上 |
 | INS-8 | P2 | 錯誤處理 | venv／pip 失敗訊息未包裝 | 同上 |
-| OBS-1 | P2 | 測試隔離 | 預設輸出固定 `/tmp/dh-observe`，併發執行互撞 | [findings-scripts-install.md](./findings-scripts-install.md) |
+| OBS-1 | P2 | 測試隔離 | 預設輸出固定 `/tmp/dh-observe`，併發執行互撞；`rm -f "$OUT"/*.png` 對空字串參數防護不足 | 同上 |
 | OBS-2 | P2 | 錯誤處理 | `screencapture … \|\| true` 靜默吞錯，零影格只出現在最後一行 | 同上 |
 | OBS-3 | **P1** | 安全／正確性 | 固定座標 `click(520,420)` 會點到開發者當下畫面的任何東西 | 同上 |
 | OBS-4 | P2 | 錯誤處理 | `source .venv/bin/activate 2>/dev/null \|\| true` 靜默退回系統版 CLI | 同上 |
-| OBS-5 | P2 | 可讀性 | `rm -f "$OUT"/*.png` 對空字串參數防護不足 | 同上 |
+| OBS-5 | P2 | 可讀性 | 捕捉視窗與 demo 時長未對帳 | 同上 |
 | LAU-1 | P2 | 正確性 | launcher 用 `dirname "$0"`，透過 symlink 呼叫時 `PYTHONPATH` 錯誤 | 同上 |
 | LAU-2 | P2 | 錯誤處理 | `.venv/bin/python` 存在但損壞時只拿到晦澀 exec 錯誤 | 同上 |
 | LAU-3 | P2 | 可讀性 | 未檢查 python3 >= 3.10 | 同上 |
 
 ### 3.3 打包與 repo 衛生
 
-| ID | 嚴重度 | 類別 | 標題 | 詳情 |
+| ID | 嚴重度 | 類別 | 標題 | 修法摘要 |
 |----|--------|------|------|------|
-| PKG-1 | P2 | 相依風險 | 三個 pyobjc 相依完全未鎖下限 | [findings-packaging-hygiene.md](./findings-packaging-hygiene.md) |
-| PKG-2 | P2 | 打包 | 無 license 元資料（有 `LICENSE` 檔但 wheel 不帶） | 同上 |
-| PKG-3 | P2 | 打包 | 語音 extras（websockets/sounddevice/numpy）未宣告為 optional-dependencies | 同上 |
-| PKG-4 | P2 | 可維護性 | 根 `SKILL.md` 與 `src/desktop_harness/data/SKILL.md` 兩份真相，可能漂移 | 同上 |
-| PKG-5 | P2 | 可測試性 | 無 pytest 設定（roadmap 第 1 項要場景化測試，需要地基） | 同上 |
-| GIT-1 | P2 | 安全 | `.gitignore` 無 `.env`／`*.pem`／`*.key`／token 模式 | 同上 |
-| GIT-2 | P2 | 可維護性 | `*.png` 全 repo 忽略，未來文件圖片會被誤擋 | 同上 |
+| PKG-1 | P2 | 相依風險 | 三個 pyobjc 相依完全未鎖下限 | 三者同步加版本下限（保守 `>=10.0`，實作當天以 venv 實際版本校準） |
+| PKG-2 | P2 | 打包 | 無 license 元資料（有 `LICENSE` 檔但 wheel 不帶） | `pyproject.toml` 補 license 元資料，確保 wheel 帶出 |
+| PKG-3 | P2 | 打包 | 語音 extras（websockets/sounddevice/numpy）未宣告為 optional-dependencies | 拆成 `[project.optional-dependencies]` 的 voice extras |
+| PKG-4 | P2 | 可維護性 | 根 `SKILL.md` 與 `src/desktop_harness/data/SKILL.md` 兩份真相，可能漂移 | 根目錄為 source of truth（見 §7 D5），另一份改由建置生成或 CI 比對 |
+| PKG-5 | P2 | 可測試性 | 無 pytest 設定（roadmap 第 1 項要場景化測試，需要地基） | 加 pytest 設定（testpaths／markers），作為場景化測試地基 |
+| GIT-1 | P2 | 安全 | `.gitignore` 無 `.env`／`*.pem`／`*.key`／token 模式 | 補 `.env`、`*.pem`、`*.key`、`*token*` 等機密模式，避免金鑰誤提交 |
+| GIT-2 | P2 | 可維護性 | `*.png` 全 repo 忽略，未來文件圖片會被誤擋 | 收斂為具體輸出路徑（如 `/tmp/dh-observe*`、`*.venv` 內產物），放行 `docs/**/*.png` |
 
 ### 3.4 文件一致性
 
-| ID | 嚴重度 | 標題 | 詳情 |
+| ID | 嚴重度 | 標題 | 修法摘要 |
 |----|--------|------|------|
-| DOC-1 | P2 | README／RELEASE 指向 `xfreeze2/desktop-harness`，與本 repo `YourheroBOB/desktop-harness` 不一致 | [findings-packaging-hygiene.md](./findings-packaging-hygiene.md) |
-| DOC-2 | P2 | 文件以 `PRE-RELEASE-REVIEW #N` 編號互相引用，編號一改全斷 | 同上 |
-| DOC-3 | P2 | `ROADMAP.md` 與 `ROADMAP-ZH-TW.md` 同一批 10 項但排序不同 | 同上 |
-| DOC-4 | P2 | `voice_hotkey_readme.md` 鼓勵把 key 寫在命令行（進 shell history） | 同上 |
+| DOC-1 | P2 | README／RELEASE 指向 `xfreeze2/desktop-harness`，與本 repo `YourheroBOB/desktop-harness` 不一致 | 只回報不改（見 §7 D4），由 BOB 指定 canonical upstream 後統一 |
+| DOC-2 | P2 | 文件以 `PRE-RELEASE-REVIEW #N` 編號互相引用，編號一改全斷 | 改用穩定章節 ID／finding ID 互引，不引用編號 |
+| DOC-3 | P2 | `ROADMAP.md` 與 `ROADMAP-ZH-TW.md` 同一批 10 項但排序不同 | 兩份依同一編號排序，翻譯只換語言不換順序 |
+| DOC-4 | P2 | `voice_hotkey_readme.md` 鼓勵把 key 寫在命令行（進 shell history） | 改用環境變數或設定檔供 key，文件明言勿寫在命令列 |
 
 ### 3.5 執行期煙霧測試（`src/desktop_harness/demo.py`）
 
-| ID | 嚴重度 | 標題 | 詳情 |
+| ID | 嚴重度 | 標題 | 修法摘要 |
 |----|--------|------|------|
-| DEMO-1 | **P1** | 找不到 TextEdit 視窗時仍 `type_text` → 按鍵可能打進任何前景 app | [findings-demo-runtime.md](./findings-demo-runtime.md) |
-| DEMO-2 | P2 | 無條件 `cmd+n` 可能撞上「未儲存變更」對話框，後續動作全失準 | 同上 |
-| DEMO-3 | P2 | `wins[0]` 多視窗時任選一個 | 同上 |
-| DEMO-4 | P2 | 固定 `sleep` 時序競爭（交叉引用 TR-5／PRE-RELEASE #13） | 同上 |
-| DEMO-5 | P2 | 永遠 `return 0`，失敗無訊號 | 同上 |
-| DEMO-6 | P2 | 變更畫面後未依 ADR-0009 呼叫 `verify()` | 同上 |
-| DEMO-7 | P2 | `open_app` 例外直接 traceback，無操作提示 | 同上 |
-| DEMO-8 | P2 | 視窗 bounds 原點與輸入座標系一致性未驗證（待確認） | 同上 |
+| DEMO-1 | **P1** | 找不到 TextEdit 視窗時仍 `type_text` → 按鍵可能打進任何前景 app | 找不到目標視窗即 abort（非 0 結束），絕不把按鍵打進未知 app |
+| DEMO-2 | P2 | 無條件 `cmd+n` 可能撞上「未儲存變更」對話框，後續動作全失準 | `cmd+n` 前確認／清除對話框，動作失敗即停 |
+| DEMO-3 | P2 | `wins[0]` 多視窗時任選一個 | 依標題／識別明確選取目標視窗，找不到即失敗 |
+| DEMO-4 | P2 | 固定 `sleep` 時序競爭（交叉引用 TR-5／PRE-RELEASE #13） | 固定 sleep 改輪詢等待條件成立（有逾時上限） |
+| DEMO-5 | P2 | 永遠 `return 0`，失敗無訊號 | 失敗路徑 `return` 非 0，讓煙霧測試可當 CI gate |
+| DEMO-6 | P2 | 變更畫面後未依 ADR-0009 呼叫 `verify()` | 變更畫面後補呼叫 `verify()` |
+| DEMO-7 | P2 | `open_app` 例外直接 traceback，無操作提示 | 例外包裝成可操作訊息（先開 app 再重跑），非 raw traceback |
+| DEMO-8 | P2 | 視窗 bounds 原點與輸入座標系一致性未驗證（待確認） | 補一個座標系一致性驗證測試（見 §4 第 10 項） |
 
 ### 3.6 跨模組架構（基於 ADR／文件推論，實作模組未在視野內）
 
-| ID | 嚴重度 | 標題 | 詳情 |
+| ID | 嚴重度 | 標題 | 修法摘要 |
 |----|--------|------|------|
-| ARCH-1 | P0（引用） | daemon 單執行緒 accept loop + 無連線逾時（ADR-0006 自述） | [findings-demo-runtime.md](./findings-demo-runtime.md) |
-| ARCH-2 | P2 | 任意 exec 表面（ADR-0003）只包少數 helper，建議補「腳本指紋」審計 | 同上 |
-| ARCH-3 | P2 | presence main-thread 約束（ADR-0006）已固化，列為未來 PR 審查清單 | 同上 |
+| ARCH-1 | P0（引用） | daemon 單執行緒 accept loop + 無連線逾時（ADR-0006 自述） | 修法在 fmb-perf DAEMON-1/2（未提供模組內）；本審查僅引用不重複 |
+| ARCH-2 | P2 | 任意 exec 表面（ADR-0003）只包少數 helper，建議補「腳本指紋」審計 | 對可 exec 的腳本／helper 建立指紋審計清單，異動需人工確認 |
+| ARCH-3 | P2 | presence main-thread 約束（ADR-0006）已固化，列為未來 PR 審查清單 | 寫入未來 PR 檢查清單：presence 呼叫不得放背景執行緒 |
 
 ---
 
 ## 4. 前十大修補建議（摘要版）
 
-完整版含程式片段與排程：[top10-remediation.md](./top10-remediation.md)。
+各項修法與程式片段見 [findings-voice-session.md](./findings-voice-session.md)（VS）與 [findings-scripts-install.md](./findings-scripts-install.md)（INS/OBS/LAU）；本節為工作量與排程摘要。
 
 | # | 項目 | 涵蓋 finding | 工作量 | 一句話價值 |
 |---|------|--------------|--------|-----------|
@@ -167,10 +167,6 @@ grep -n "typing anyway" src/desktop_harness/demo.py
 |------|------|
 | [findings-voice-session.md](./findings-voice-session.md) | `scripts/voice_session.py` 逐項審查（VS-1..10） |
 | [findings-scripts-install.md](./findings-scripts-install.md) | `install.sh`／`observe-demo.sh`／launcher（INS/OBS/LAU） |
-| [findings-packaging-hygiene.md](./findings-packaging-hygiene.md) | `pyproject.toml`／`.gitignore`／文件一致性（PKG/GIT/DOC） |
-| [findings-demo-runtime.md](./findings-demo-runtime.md) | `demo.py`（DEMO）+ 未審模組檢查清單 + 架構觀察（ARCH） |
-| [top10-remediation.md](./top10-remediation.md) | 前十大修補建議、程式片段、工作量、排程 |
-| [verification-plan.md](./verification-plan.md) | 不連正式服務、不寫 repo 外的驗證方案 |
 
 ---
 
@@ -183,7 +179,7 @@ grep -n "typing anyway" src/desktop_harness/demo.py
 
 ---
 
-## 7. 決策點（保守預設，詳見 top10 與 SUMMARY）
+## 7. 決策點（保守預設，詳見 §3 各表與對應 findings 文件）
 
 - D1：`--dry-run` 採最保守語意——**永不執行真實 GUI**（唯讀工具也改走 dry-run 或明確 allowlist）。
 - D2：voice 自動續 turn 預設上限 8 次。

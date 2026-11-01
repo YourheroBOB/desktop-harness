@@ -139,7 +139,7 @@ except Exception as e:
 
 - **位置：** `scripts/voice_session.py:130`（`pending_calls`）、`:165-169`（`response.done` → `response.create`）
 - **嚴重度：** P2（併發／成本）
-- **說明：`每次 `response.done` 且 `pending_calls` 非空就再送一次 `response.create`。若模型每輪都產生工具呼叫（例如 `screen_labels` 迴圈），就是無限續航，每分鐘計費的 Voice API 會穩定燒錢，且没有任何停止條件。
+- **說明：** 每次 `response.done` 且 `pending_calls` 非空就再送一次 `response.create`。若模型每輪都產生工具呼叫（例如 `screen_labels` 迴圈），就是無限續航，每分鐘計費的 Voice API 會穩定燒錢，且沒有任何停止條件。
 - **建議修法：**
 
 ```python
@@ -165,7 +165,7 @@ elif et == "response.done":
 
 - **位置：** `scripts/voice_session.py:152-154`
 - **嚴重度：** P2（正確性，**待確認**）
-- **說明：** WS 事件的 `arguments` 是 JSON **字串**，程式直接傳給 `execute(name, arguments, dry_run=dry_run)`。若 `voice_tools.execute()` 預期簽名是 `dict`（大多數 tool executor 會），這裡每次呼叫都會炸或静默失敗；若它內部自己 `json.loads`，則沒問題。`voice_tools.py` 未在本次視野內，無法斷言。
+- **說明：** WS 事件的 `arguments` 是 JSON **字串**，程式直接傳給 `execute(name, arguments, dry_run=dry_run)`。若 `voice_tools.execute()` 預期簽名是 `dict`（大多數 tool executor 會），這裡每次呼叫都會炸或靜默失敗；若它內部自己 `json.loads`，則沒問題。`voice_tools.py` 未在本次視野內，無法斷言。
 - **建議修法（不論契約為何都成立）：**
 
 ```python
@@ -226,7 +226,7 @@ async def run_session(api_key, *, text=None, dry_run=False,
         result = await asyncio.wait_for(asyncio.to_thread(executor, name, payload, dry_run=dry_run), ...)
 ```
 
-測試用本地 `websockets.serve` 假 server（127.0.0.1，非正式服務）+ fake executor，見 `verification-plan.md`。
+離線驗證做法（不連任何正式服務）：用 `websockets.serve` 在 `127.0.0.1` 起一個本地假 server（固定回放事件序列，例如 `response.done` + 一筆 function call），再注入 fake executor（記錄呼叫參數、回傳樣本字串），即可離線覆蓋 VS-1..VS-9 的行為：dry-run 語意、參數遮標、逾時／錯誤分類、續 turn 上限、`arguments` 型別契約都能在無網路環境下驗證。
 - **工作量：** S（3–4h）
 
 ---

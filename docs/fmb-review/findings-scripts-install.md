@@ -33,7 +33,7 @@ fi
 
 - **位置：** `install.sh:28`
 - **嚴重度：** P2（錯誤恢復）
-- **說明：** `desktop-harness skill > ~/.grok/skills/desktop-harness/SKILL.md`。若 CLI 在中間失敗（`set -e` 會中止），留下的是**半份 SKILL.md**，而 Grok 下次開工就讀到殘檔——agent 會拿到不完整的行为規範。寫入共享位置應原子化。
+- **說明：** `desktop-harness skill > ~/.grok/skills/desktop-harness/SKILL.md`。若 CLI 在中間失敗（`set -e` 會中止），留下的是**半份 SKILL.md**，而 Grok 下次開工就讀到殘檔——agent 會拿到不完整的行為規範。寫入共享位置應原子化。
 - **建議修法：**
 
 ```bash
@@ -83,7 +83,7 @@ fi
 - **位置：** `install.sh:21`
 - **嚴重度：** P2（可攜性）
 - **說明：** shim 寫死 `$ROOT`。使用者把 repo 從 `~/dev/desktop-harness` 移到別處，shim 的 exec 會失敗，訊息是 `no such file or directory`——看不出跟搬移有關。
-- **建議修法：** 短期在 shim 加一行存在性檢查與提示；長期（roadmap 的 .app onboarding）再改為解析 symlink。文件补一句「搬移 clone 後請重跑 install.sh」。
+- **建議修法：** 短期在 shim 加一行存在性檢查與提示；長期（roadmap 的 .app onboarding）再改為解析 symlink。文件補一句「搬移 clone 後請重跑 install.sh」。
 - **工作量：** S（0.5h + 文件）
 
 ### INS-6｜重跑安裝沿用可能損壞的 `.venv`
@@ -112,8 +112,8 @@ python3 -m venv --upgrade-deps "$ROOT/.venv" 2>/dev/null || python3 -m venv "$RO
 ### INS-8｜venv／pip 失敗訊息未包裝
 
 - **位置：** `install.sh:8-16`
-- **嚴重度： P2（錯誤處理）
-- **說明：** venv 建立失败（常見原因：Xcode CLT 缺、磁碟滿、`python3` 是 conda shim）只拿到 pip/venv 的原始錯誤。
+- **嚴重度：** P2（錯誤處理）
+- **說明：** venv 建立失敗（常見原因：Xcode CLT 缺、磁碟滿、`python3` 是 conda shim）只拿到 pip/venv 的原始錯誤。
 - **建議修法：** 每步包一層 `|| { echo "install.sh: <步驟> 失敗（$?）" >&2; exit 1; }`，或抽 `die()` 函式統一處理。
 - **工作量：** S（1h）
 
@@ -140,7 +140,7 @@ mkdir -p "$OUT"
 
 - **位置：** `scripts/observe-demo.sh:17`
 - **嚴重度：** P2（錯誤處理）
-- **說明：** `screencapture -x ... || true`——沒有 Screen Recording 權限時 24 帧全失敗，腳本只在最後一行印 `frames: 0`。觀察迴圈的整個價值在影格，零影格應該在**開始時**就失敗并給授權提示。
+- **說明：** `screencapture -x ... || true`——沒有 Screen Recording 權限時 24 幀全失敗，腳本只在最後一行印 `frames: 0`。觀察迴圈的整個價值在影格，零影格應該在**開始時**就失敗並給授權提示。
 - **建議修法：**
 
 ```bash
@@ -196,14 +196,18 @@ Python 段改用 `click(float(CX), float(CY), ...)`（由 env 讀入），讓 CI
 - **位置：** `desktop-harness:3`
 - **嚴重度：** P2（正確性）
 - **說明：** `DIR="$(cd "$(dirname "$0")" && pwd)"` 取的是 `$0` 所在目錄。若使用者把 launcher symlink 到 `~/bin/desktop-harness`，DIR 變成 `~/bin`，`PYTHONPATH=~/bin/src` 不存在 → `No module named desktop_harness`。（install.sh 的 shim 用絕對路徑呼叫所以沒事，但文件鼓勵直接把 repo 的 launcher 掛上 PATH 的用法會中獎。）
-- **建議修法（POSIX 可攜）：**
+- **建議修法（POSIX 可攜；不可對 `$0` 賦值，改用 `target` 變數迭代解析 symlink）：**
 
 ```sh
-while [ -L "$0" ]; do
-  link="$(readlink "$0")"
-  case "$link" in /*) "$0"="$link" ;; *) "$0"="$(dirname "$0")/$link" ;; esac
+target="$0"
+while [ -L "$target" ]; do
+  link="$(readlink "$target")"
+  case "$link" in
+    /*) target="$link" ;;
+    *)  target="$(dirname "$target")/$link" ;;
+  esac
 done
-DIR="$(cd "$(dirname "$0")" && pwd)"
+DIR="$(cd "$(dirname "$target")" && pwd)"
 ```
 
 - **工作量：** S（1h）
