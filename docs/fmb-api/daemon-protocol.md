@@ -14,7 +14,7 @@
 | op | 請求 | 回應 | 說明 |
 |----|------|------|------|
 | `ping` | `{"op":"ping"}` | `{"ok":true,…}` | 存活探測；`is_running()` 以約 0.4s 逾時 ping。 |
-| `exec` | `{"op":"exec","code":"<python>","token":"<token>"}` | `{"ok":true,"stdout":"…","stderr":"…"}` | 在常駐进程內 `exec()` 腳本；必須帶 token。 |
+| `exec` | `{"op":"exec","code":"<python>","token":"<token>"}` | `{"ok":true,"stdout":"…","stderr":"…"}` | 在常駐進程內 `exec()` 腳本；必須帶 token。 |
 | `quit` | `{"op":"quit",…}` | 依實作 | 停止 daemon。 |
 
 - `code` 為要執行的 Python 原始碼；`stdout`／`stderr` 為腳本輸出。

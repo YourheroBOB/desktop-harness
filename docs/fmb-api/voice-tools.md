@@ -57,4 +57,4 @@
 
 - 會**送出訊息、付款、刪除、變更安全設定**的工具必須先向使用者確認，否則拒絕。
 - `run_shell` 屬高風險、預設關閉；語音場景尤其要避免「try everything」式連鎖動作。
-- 一般 harness 安全規則（敏感 app 阻擋、verify-after-mutation）同樣適用，見 [helpers.md](./helpers.md)。
+- 一般 harness 安全規則（敏感 app 阻擋、verify-after-mutation）同樣適用，見 [ADR-0008](../fmb-adr/ADR-0008-sensitive-app-gates.md)、[ADR-0009](../fmb-adr/ADR-0009-verify-after-mutation.md) 與 [SKILL.md](../../SKILL.md)。

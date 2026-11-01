@@ -14,11 +14,12 @@
 
 | 檔案 | 內容 |
 |------|------|
-| [cli.md](./cli.md) | `desktop-harness` CLI 指令與子命令（`--doctor`、`selftest`、`demo`、`skill`、`daemon`、`check-update`、stdin 腳本） |
-| [helpers.md](./helpers.md) | 腳本命名空間中的公開 helper 函式（探索／感知／操作／媒體／滑鼠／鍵盤／截圖／presence／驗證） |
+| [cli.md](./cli.md) | `desktop-harness` CLI 指令與子命令（`--doctor`、`selftest`、`demo`、`skill`、`daemon`、`check-update`、stdin 腳本），並涵蓋 stdin 腳本命名空間中的公開 helper 呼叫方式 |
 | [configuration.md](./configuration.md) | 環境變數與設定項（僅列變數名與效果） |
 | [daemon-protocol.md](./daemon-protocol.md) | 常駐 daemon 的 NDJSON-over-Unix-socket 協定與 Python API |
 | [voice-tools.md](./voice-tools.md) | 實驗性語音控制：Realtime WebSocket 端點、工具 schema 與本機執行器 |
+
+helper 函式的使用契約與安全規則（AX 優先、verify-after-mutation、媒體 look-once）另見 [SKILL.md](../../SKILL.md)；精確簽名以 `src/desktop_harness/` 原始碼為準。
 
 ## 三條使用契約（呼叫前必讀）
 
@@ -42,4 +43,4 @@ click_text("Format")
 PY
 ```
 
-完整語法與參見 [cli.md](./cli.md) 與 [helpers.md](./helpers.md)。
+完整語法見 [cli.md](./cli.md)；helper 命名空間與使用契約見 [SKILL.md](../../SKILL.md)。

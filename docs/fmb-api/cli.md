@@ -6,7 +6,7 @@
 
 ## 全域行為
 
-- **stdin 腳本模式**：不帶子命令時，CLI 從 stdin 讀取 Python 腳本，組裝 helper 命名空間（含 `agent-workspace/agent_helpers.py`）後執行。預設會自動改用常駐 daemon（若已在跑）；`DH_NO_DAEMON` 可强制本機行程。腳本的 stdout／stderr 會回傳給呼叫端。
+- **stdin 腳本模式**：不帶子命令時，CLI 從 stdin 讀取 Python 腳本，組裝 helper 命名空間（含 `agent-workspace/agent_helpers.py`）後執行。預設會自動改用常駐 daemon（若已在跑）；`DH_NO_DAEMON` 可強制本機行程。腳本的 stdout／stderr 會回傳給呼叫端。
 - **版本**：`--version` 印出版本字串（目前 `0.4.2`，見 `src/desktop_harness/__init__.py`）。
 - **結束碼**：成功為 `0`；健檢／自測有失敗項目時為非 0。
 
@@ -75,7 +75,7 @@ PY
 
 ## `daemon`（子命令）
 
-常駐溫熱进程，讓多步任務不必重複 import PyObjC。協定細節見 [daemon-protocol.md](./daemon-protocol.md)。
+常駐溫熱進程，讓多步任務不必重複 import PyObjC。協定細節見 [daemon-protocol.md](./daemon-protocol.md)。
 
 | 子命令 | 說明 |
 |--------|------|
@@ -85,7 +85,7 @@ PY
 | `daemon stop` | 停止 daemon |
 
 - **安全**：socket 與 token 檔皆為 `0600`；僅同 UID 可用。多人共用機器請勿常開（見 [SECURITY.md](../../SECURITY.md)）。
-- **建議**：長会话結束後 `desktop-harness daemon stop`。
+- **建議**：長會話結束後 `desktop-harness daemon stop`。
 
 ## `check-update`
 
